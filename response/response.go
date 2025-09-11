@@ -24,6 +24,19 @@ type LoginResponse struct{
 	// Email string `json:"email"`
 }
 
+type OrderMenuItemsResponse struct{
+	Name string `json:"name" binding:"required"`
+	Quantity uint	`json:"quantity" binding:"required"`
+}
+
+type OrderResponse struct{
+	TableNo uint
+	WaiterID uint
+	WaiterName string
+	MenuItems []OrderMenuItemsResponse
+	Status string
+}
+
 type MenuResponse struct{
 	Name string `json:"name"`
 	Category models.Category `json:"category"`

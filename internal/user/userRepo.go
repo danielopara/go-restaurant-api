@@ -1,6 +1,8 @@
 package user
 
 import (
+	"errors"
+
 	"github.com/danielopara/restaurant-api/models"
 	"gorm.io/gorm"
 )
@@ -8,6 +10,7 @@ import (
 type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
+	FindById(id uint) (*models.User, error)
 	FindAll() ([] models.User, error)
 }
 
@@ -17,6 +20,21 @@ type userRepo struct {
 
 func NewUserRepository(db *gorm.DB) UserRepository{
 	return &userRepo{db: db}
+}
+
+
+func (r *userRepo) FindById(id uint) (*models.User, error){
+	var user *models.User
+	err := r.db.Where("ID = ?", id).First(&user).Error
+
+	if err != nil{
+		if err == gorm.ErrRecordNotFound{
+			return nil, errors.New("User does not exist")
+		}
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (r *userRepo) Create(user *models.User) error {

@@ -22,3 +22,16 @@ type CreateMenuItem struct {
 	Category    string  `json:"category" binding:"required"`
 	Available   bool    `json:"available"`
 }
+
+type OrderItemRequest struct {
+	// MenuItemID uint   `json:"menu_item_id"`
+	Name     string `json:"name"`
+	Quantity int    `json:"quantity"`
+}
+
+type CreateOrder struct {
+	// MenuItemId uint `json:"menu_item_id" binding:"required"`
+	TableNo  uint               `json:"table_no" binding:"required"`
+	WaiterID uint               `json:"waiter_id" binding:"required"`
+	Items    []OrderItemRequest `json:"items" binding:"required"`
+}

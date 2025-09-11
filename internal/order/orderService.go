@@ -4,33 +4,32 @@ import (
 	"errors"
 
 	"github.com/danielopara/restaurant-api/internal/menu"
+	"github.com/danielopara/restaurant-api/internal/user"
 	"github.com/danielopara/restaurant-api/models"
+	"github.com/danielopara/restaurant-api/request"
+	"github.com/danielopara/restaurant-api/response"
 )
 
 
-type OrderItemRequest struct {
-	MenuItemID uint `json:"menu_item_id"`
-	Name string `json:"name"`
-	Quantity   int  `json:"quantity"`
-}
 
 
 type OrderService interface {
-	MakeOrder(waiterID uint, tableNo int, items []OrderItemRequest) ( *models.Order ,error)
+	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
 }
 
 
 type orderServiceImpl struct{
 	orderRepo OrderRepository
 	menuRepo menu.MenuRepository
+	userRepo user.UserRepository
 }
 
-func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository) OrderService{
-	return &orderServiceImpl{orderRepo: orderRepo, menuRepo: menuRepo}
+func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, userRepo user.UserRepository) OrderService{
+	return &orderServiceImpl{orderRepo: orderRepo, menuRepo: menuRepo, userRepo: userRepo}
 }
 
 
-func (o *orderServiceImpl) MakeOrder(waiterID uint, tableNo int, items []OrderItemRequest) ( *models.Order ,error){
+func (o *orderServiceImpl) MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error){
 
 	if len(items) == 0 {
 		return nil, errors.New("item cannot be empty")
@@ -53,23 +52,45 @@ func (o *orderServiceImpl) MakeOrder(waiterID uint, tableNo int, items []OrderIt
 		}
 		
 		orderItems = append(orderItems, models.OrderItem{
-			MenuItemID: i.MenuItemID,
+			MenuItemID: menuItem.ID,
 			Quantity: uint(i.Quantity),
-			// MenuItem: ,
+			MenuItem: *menuItem,
 			
 		})
 	}
 
+	waiter, err := o.userRepo.FindById(waiterID)
+	if err != nil {
+		return  nil, errors.New("waiter not found")
+	}
+
 	order := &models.Order{
 		TableNo: uint(tableNo),
-		WaiterID: waiterID,
+		WaiterID: waiter.ID,
 		Items: orderItems,
 		Status: models.StatusPending,
 	}
 
 	if err := o.orderRepo.CreateOrder(order); err != nil{
-		return nil, err
+		return nil, errors.New("error creating order")
 	}
 
-	return order, nil
+	
+	var menuItems []response.OrderMenuItemsResponse
+
+	for _, i := range orderItems{
+		menuItems = append(menuItems, response.OrderMenuItemsResponse{
+			Name: i.MenuItem.Name,
+			Quantity: i.Quantity,
+		})
+	}
+	orderRes:=&response.OrderResponse{
+		TableNo: order.TableNo,
+		WaiterID: order.WaiterID,
+		WaiterName: waiter.FirstName + waiter.LastName,
+		MenuItems: menuItems,
+		Status: string(order.Status),
+	}
+
+	return orderRes, nil
  }

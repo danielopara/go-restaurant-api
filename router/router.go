@@ -5,6 +5,7 @@ import (
 
 	"github.com/danielopara/restaurant-api/internal/auth"
 	"github.com/danielopara/restaurant-api/internal/menu"
+	"github.com/danielopara/restaurant-api/internal/order"
 	"github.com/danielopara/restaurant-api/internal/user"
 	"github.com/danielopara/restaurant-api/middleware"
 	"github.com/danielopara/restaurant-api/models"
@@ -98,6 +99,16 @@ func Router(db *gorm.DB) *gin.Engine{
 		middleware.RoleMiddleWare(models.RoleAdmin, models.RoleManager, models.RoleChef),
 		menuHandlers.DeleteMenuItem)
 		
+	}
+
+	orderRepo := order.NewOrderRepository(db)
+	orderService := order.NewOrderService(orderRepo, menuRepo, userRepo)
+	orderHandler := order.NewOrderHandler(orderService)
+
+	orderGroup := r.Group("api/v1/order")
+
+	{
+		orderGroup.POST("/create-order", orderHandler.CreateOrder)
 	}
 
 	return r

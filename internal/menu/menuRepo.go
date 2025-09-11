@@ -1,6 +1,8 @@
 package menu
 
 import (
+	"fmt"
+
 	"github.com/danielopara/restaurant-api/models"
 	"gorm.io/gorm"
 )
@@ -56,7 +58,7 @@ func (m *menuRepo) FindFood(food string) (*models.Menu, error){
 	err := m.db.Where("name = ?", food).First(&menuItem).Error
 	if err != nil{
 		if err == gorm.ErrRecordNotFound{
-			return nil, nil
+			return nil, fmt.Errorf("menu item %s not found", food)
 		}
 		return nil, err
 	}
