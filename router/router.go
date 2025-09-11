@@ -109,6 +109,7 @@ func Router(db *gorm.DB) *gin.Engine{
 
 	{
 		orderGroup.POST("/create-order", orderHandler.CreateOrder)
+		orderGroup.GET("/:id", orderHandler.FindOrderById)
 	}
 
 	return r

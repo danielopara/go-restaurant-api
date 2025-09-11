@@ -2,6 +2,7 @@ package order
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/danielopara/restaurant-api/request"
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,33 @@ type OrderHandler struct {
 
 func NewOrderHandler(orderService OrderService) *OrderHandler {
 	return &OrderHandler{orderService: orderService}
+}
+
+func (o *OrderHandler) FindOrderById(c *gin.Context){
+	idParam := c.Param("id")
+	if idParam == ""{
+		idParam = c.Query("id")
+	}
+
+	if idParam == ""{
+		c.JSON(http.StatusBadRequest, gin.H{"error":"no id in param"})
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	order, err := o.orderService.FindOrderById(uint(id))
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": order})
 }
 
 func (o *OrderHandler) CreateOrder(c *gin.Context){

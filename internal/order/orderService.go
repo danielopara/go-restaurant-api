@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/danielopara/restaurant-api/internal/menu"
 	"github.com/danielopara/restaurant-api/internal/user"
@@ -15,6 +16,7 @@ import (
 
 type OrderService interface {
 	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
+	FindOrderById(id uint) (*response.OrderResponse, error)
 }
 
 
@@ -26,6 +28,38 @@ type orderServiceImpl struct{
 
 func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, userRepo user.UserRepository) OrderService{
 	return &orderServiceImpl{orderRepo: orderRepo, menuRepo: menuRepo, userRepo: userRepo}
+}
+
+func (o *orderServiceImpl) FindOrderById(id uint)(*response.OrderResponse, error){
+
+	order, err := o.orderRepo.FindOrderById(id)
+
+	if err != nil{
+		return nil, err
+	}
+
+	waiterName, err :=o.userRepo.FindById(order.WaiterID)
+	if err != nil{
+		return nil, err
+	}
+
+	var menuItems []response.OrderMenuItemsResponse
+	for _, i := range order.Items{
+		menuItems = append(menuItems, response.OrderMenuItemsResponse{
+			Name: i.MenuItem.Name,
+			Quantity: i.Quantity,
+		})
+	}
+
+	orderRes := response.OrderResponse{
+		TableNo: uint(order.TableNo),
+		WaiterID: order.WaiterID,
+		WaiterName: fmt.Sprintf("%s %s", waiterName.FirstName, waiterName.LastName),
+		Status: string(order.Status) ,
+		MenuItems: menuItems,
+	}
+
+	return &orderRes, err
 }
 
 

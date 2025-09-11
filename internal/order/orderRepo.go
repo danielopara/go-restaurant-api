@@ -1,12 +1,15 @@
 package order
 
 import (
+	"fmt"
+
 	"github.com/danielopara/restaurant-api/models"
 	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
 	CreateOrder(*models.Order) error
+	FindOrderById(id uint) ( *models.Order, error)
 }
 
 type orderRepo struct{
@@ -20,4 +23,17 @@ func NewOrderRepository ( db *gorm.DB) OrderRepository{
 
 func (o *orderRepo) CreateOrder(order *models.Order) error {
 	return o.db.Create(order).Error
+}
+
+func (o *orderRepo) FindOrderById(id uint) (*models.Order, error){
+	var order *models.Order
+
+	if err := o.db.Preload("Items.MenuItem").First(&order, id).Error; err != nil{
+		if err == gorm.ErrRecordNotFound{
+			return nil, fmt.Errorf("order not found")
+		}
+		return nil, err
+	}
+
+	return order, nil
 }
