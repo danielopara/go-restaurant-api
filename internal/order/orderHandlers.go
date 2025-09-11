@@ -16,6 +16,34 @@ func NewOrderHandler(orderService OrderService) *OrderHandler {
 	return &OrderHandler{orderService: orderService}
 }
 
+func (o *OrderHandler) DeleteOrderById(c *gin.Context){
+	idParam := c.Param("id")
+	
+	if idParam == ""{
+		idParam = c.Query("id")
+	}
+
+	if idParam == ""{
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no id param or query"})
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := o.orderService.DeleteOrderById(uint(id)); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": "order deleted"})
+}
+
+// find order by id
 func (o *OrderHandler) FindOrderById(c *gin.Context){
 	idParam := c.Param("id")
 	if idParam == ""{

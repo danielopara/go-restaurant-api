@@ -17,6 +17,7 @@ import (
 type OrderService interface {
 	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
 	FindOrderById(id uint) (*response.OrderResponse, error)
+	DeleteOrderById(id uint) error
 }
 
 
@@ -29,7 +30,12 @@ type orderServiceImpl struct{
 func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, userRepo user.UserRepository) OrderService{
 	return &orderServiceImpl{orderRepo: orderRepo, menuRepo: menuRepo, userRepo: userRepo}
 }
+// delete order by id
+func (o *orderServiceImpl) DeleteOrderById(id uint)error{
+	return o.orderRepo.DeleteOrderById(id)
+}
 
+// find order by id
 func (o *orderServiceImpl) FindOrderById(id uint)(*response.OrderResponse, error){
 
 	order, err := o.orderRepo.FindOrderById(id)

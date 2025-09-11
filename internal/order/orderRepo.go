@@ -10,6 +10,7 @@ import (
 type OrderRepository interface {
 	CreateOrder(*models.Order) error
 	FindOrderById(id uint) ( *models.Order, error)
+	DeleteOrderById(id uint)error
 }
 
 type orderRepo struct{
@@ -23,6 +24,10 @@ func NewOrderRepository ( db *gorm.DB) OrderRepository{
 
 func (o *orderRepo) CreateOrder(order *models.Order) error {
 	return o.db.Create(order).Error
+}
+
+func (o *orderRepo) DeleteOrderById(id uint) error {
+	return o.db.Delete(&models.Order{}, id).Error
 }
 
 func (o *orderRepo) FindOrderById(id uint) (*models.Order, error){

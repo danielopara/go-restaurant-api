@@ -108,8 +108,9 @@ func Router(db *gorm.DB) *gin.Engine{
 	orderGroup := r.Group("api/v1/order")
 
 	{
-		orderGroup.POST("/create-order", orderHandler.CreateOrder)
-		orderGroup.GET("/:id", orderHandler.FindOrderById)
+		orderGroup.POST("/create-order", middleware.AuthMiddleware(), middleware.RoleMiddleWare(models.RoleWaiter),orderHandler.CreateOrder)
+		orderGroup.GET("/:id", middleware.AuthMiddleware(), orderHandler.FindOrderById) 
+		orderGroup.DELETE("/:id",  orderHandler.DeleteOrderById) 
 	}
 
 	return r
