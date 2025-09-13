@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/danielopara/restaurant-api/models"
 	"github.com/danielopara/restaurant-api/request"
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +15,49 @@ type OrderHandler struct {
 
 func NewOrderHandler(orderService OrderService) *OrderHandler {
 	return &OrderHandler{orderService: orderService}
+}
+
+func ( o *OrderHandler) UpdateOrderStatusById (c *gin.Context){
+	role, exists := c.Get("role")
+
+	idParam := c.Param("id")
+	if idParam == ""{
+		idParam = c.Query("id")
+	}
+
+	if idParam == ""{
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query or param cannot be empty"})
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "not a valid id"})
+		return
+	}
+
+	if !exists{
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
+		return
+	}
+
+	var req *request.UpdateOrderStatus
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	roleStr, ok := role.(models.Role)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "role is not a string"})
+		return
+	}
+	if err := o.orderService.UpdateOrderStatus(uint(id), req.Status, roleStr); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "updated"})
 }
 
 func (o *OrderHandler) DeleteOrderById(c *gin.Context){

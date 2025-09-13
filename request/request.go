@@ -1,5 +1,7 @@
 package request
 
+import "github.com/danielopara/restaurant-api/models"
+
 type Register struct {
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name" binding:"required"`
@@ -34,4 +36,8 @@ type CreateOrder struct {
 	TableNo  uint               `json:"table_no" binding:"required"`
 	WaiterID uint               `json:"waiter_id" binding:"required"`
 	Items    []OrderItemRequest `json:"items" binding:"required"`
+}
+
+type UpdateOrderStatus struct {
+	Status  models.OrderStatus `json:"status" binding:"required"`
 }

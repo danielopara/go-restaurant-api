@@ -12,6 +12,15 @@ const (
 	StatusClosed OrderStatus = "Closed"
 )
 
+var validStatus = []OrderStatus{
+	StatusPending,
+	StatusClosed,
+	StatusReady,
+	StatusClosed,
+	StatusServed,
+	StatusInProgress,
+}
+
 type OrderItem struct {
 	gorm.Model
 	OrderId uint	`json:"order_id"`
@@ -27,4 +36,13 @@ type Order struct {
 	ChefID *uint	`json:"chef_id"`
 	Status OrderStatus	`json:"status"`
 	Items []OrderItem	`json:"items"`
+}
+
+func(o OrderStatus) IsValid() bool{
+	for _, v := range validStatus{
+		if o == v{
+			return true
+		}
+	}
+	return  false
 }

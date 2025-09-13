@@ -110,7 +110,8 @@ func Router(db *gorm.DB) *gin.Engine{
 	{
 		orderGroup.POST("/create-order", middleware.AuthMiddleware(), middleware.RoleMiddleWare(models.RoleWaiter),orderHandler.CreateOrder)
 		orderGroup.GET("/:id", middleware.AuthMiddleware(), orderHandler.FindOrderById) 
-		orderGroup.DELETE("/:id",  orderHandler.DeleteOrderById) 
+		orderGroup.DELETE("/:id", middleware.AuthMiddleware(), middleware.RoleMiddleWare(models.RoleManager),  orderHandler.DeleteOrderById) 
+		orderGroup.PUT("/:id", middleware.AuthMiddleware(), middleware.RoleMiddleWare(models.RoleAdmin, models.RoleCashier, models.RoleChef, models.RoleWaiter, models.RoleManager), orderHandler.UpdateOrderStatusById)
 	}
 
 	return r

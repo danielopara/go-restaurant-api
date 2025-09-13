@@ -11,6 +11,7 @@ type OrderRepository interface {
 	CreateOrder(*models.Order) error
 	FindOrderById(id uint) ( *models.Order, error)
 	DeleteOrderById(id uint)error
+	UpdateOrderStatus(id uint, status models.OrderStatus) error
 }
 
 type orderRepo struct{
@@ -20,6 +21,11 @@ type orderRepo struct{
 
 func NewOrderRepository ( db *gorm.DB) OrderRepository{
 	return &orderRepo{db:db}
+}
+
+//update status
+func (o *orderRepo) UpdateOrderStatus(id uint, status models.OrderStatus) error{
+	return o.db.Model(&models.Order{}).Where("id=?", id).Update("status", status).Error
 }
 
 func (o *orderRepo) CreateOrder(order *models.Order) error {

@@ -18,6 +18,7 @@ type OrderService interface {
 	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
 	FindOrderById(id uint) (*response.OrderResponse, error)
 	DeleteOrderById(id uint) error
+	UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role) error
 }
 
 
@@ -30,6 +31,45 @@ type orderServiceImpl struct{
 func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, userRepo user.UserRepository) OrderService{
 	return &orderServiceImpl{orderRepo: orderRepo, menuRepo: menuRepo, userRepo: userRepo}
 }
+
+//updating status
+func (o *orderServiceImpl) UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role)error{
+	order, err := o.orderRepo.FindOrderById(id)
+	
+	if err != nil {
+		return err
+	}
+
+	if !status.IsValid(){
+		return errors.New("not a valid status")
+	}
+
+	switch role{
+	case models.RoleWaiter:
+		if !(order.Status == models.StatusReady && status == models.StatusServed){
+			return errors.New("waiter can only updated orders to served")
+		}
+	case models.RoleChef:
+		if !((order.Status == models.StatusPending && status == models.StatusInProgress) || 
+		(order.Status == models.StatusInProgress && status == models.StatusReady)) {
+			return errors.New("chef can only move order from Pending -> InProgress or InProgress -> Ready")
+		}
+	case models.RoleCashier:
+		if status != models.StatusClosed{
+			return errors.New("cashier can only close orders")
+		}
+	case models.RoleManager:
+		return o.orderRepo.UpdateOrderStatus(id, status)
+	case models.RoleAdmin:
+		return o.orderRepo.UpdateOrderStatus(id, status)
+	default:
+		return errors.New("unauthorized role")
+	}
+
+	return o.orderRepo.UpdateOrderStatus(order.ID, status)
+}
+
+
 // delete order by id
 func (o *orderServiceImpl) DeleteOrderById(id uint)error{
 	return o.orderRepo.DeleteOrderById(id)
