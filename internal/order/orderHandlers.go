@@ -52,7 +52,7 @@ func ( o *OrderHandler) UpdateOrderStatusById (c *gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": "role is not a string"})
 		return
 	}
-	if err := o.orderService.UpdateOrderStatus(uint(id), req.Status, roleStr); err != nil{
+	if err := o.orderService.UpdateOrderStatus(uint(id), req.Status, roleStr, req.UserId); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -18,7 +18,7 @@ type OrderService interface {
 	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
 	FindOrderById(id uint) (*response.OrderResponse, error)
 	DeleteOrderById(id uint) error
-	UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role) error
+	UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role, userId uint) error
 }
 
 
@@ -33,7 +33,7 @@ func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, us
 }
 
 //updating status
-func (o *orderServiceImpl) UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role)error{
+func (o *orderServiceImpl) UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role, userId uint)error{
 	order, err := o.orderRepo.FindOrderById(id)
 	
 	if err != nil {
@@ -46,10 +46,18 @@ func (o *orderServiceImpl) UpdateOrderStatus(id uint, status models.OrderStatus,
 
 	switch role{
 	case models.RoleWaiter:
+		if order.WaiterID == userId{
+		return errors.New("user does not own the order")
+	}
 		if !(order.Status == models.StatusReady && status == models.StatusServed){
 			return errors.New("waiter can only updated orders to served")
 		}
 	case models.RoleChef:
+		if order.ChefID == nil{
+			order.ChefID = &userId
+		} else if *order.ChefID != userId{
+			return errors.New("another chef is assigned to the order")
+		}
 		if !((order.Status == models.StatusPending && status == models.StatusInProgress) || 
 		(order.Status == models.StatusInProgress && status == models.StatusReady)) {
 			return errors.New("chef can only move order from Pending -> InProgress or InProgress -> Ready")

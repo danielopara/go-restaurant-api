@@ -39,5 +39,6 @@ type CreateOrder struct {
 }
 
 type UpdateOrderStatus struct {
+	UserId uint `json:"user_id" binding:"required"`
 	Status  models.OrderStatus `json:"status" binding:"required"`
 }
