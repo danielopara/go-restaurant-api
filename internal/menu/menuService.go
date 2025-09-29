@@ -20,8 +20,8 @@ type menuServiceImpl struct{
 	menuRepo MenuRepository
 }
 
-func NewMenuService(menuRepo *MenuRepository) MenuService{
-	return &menuServiceImpl{menuRepo: *menuRepo}
+func NewMenuService(menuRepo MenuRepository) MenuService{
+	return &menuServiceImpl{menuRepo: menuRepo}
 }
 
 func (m *menuServiceImpl) DeleteMenuItem(id uint) error{

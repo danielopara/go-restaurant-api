@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/danielopara/restaurant-api/cache"
 	"github.com/danielopara/restaurant-api/internal/auth"
 	"github.com/danielopara/restaurant-api/internal/menu"
 	"github.com/danielopara/restaurant-api/internal/order"
@@ -59,7 +60,9 @@ func Router(db *gorm.DB) *gin.Engine{
 	})
 
 	menuRepo := menu.NewMenuRepository(db)
-	menuService := menu.NewMenuService(&menuRepo)
+	cacheStore := cache.NewCache()
+	cacheRepo := cache.NewCacheRepo(menuRepo, cacheStore)
+	menuService := menu.NewMenuService(cacheRepo)
 	menuHandlers := menu.NewMenuHandlers(menuService)
 
 	menuGroup := r.Group("/api/v1/menu")
