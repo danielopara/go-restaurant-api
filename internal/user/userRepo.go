@@ -11,7 +11,7 @@ type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
 	FindById(id uint) (*models.User, error)
-	FindAll() ([] models.User, error)
+	FindAll() ([] *models.User, error)
 }
 
 type userRepo struct {
@@ -54,8 +54,8 @@ func (r *userRepo) FindByEmail(email string) (*models.User, error){
 	return &user, err
 }
 
-func (r *userRepo) FindAll()([]models.User, error){
-	var users []models.User
+func (r *userRepo) FindAll()([]*models.User, error){
+	var users []*models.User
 	err := r.db.Find(&users).Error
 
 	if err != nil{

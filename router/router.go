@@ -20,8 +20,13 @@ import (
 func Router(db *gorm.DB) *gin.Engine{
 	r := gin.Default()
 
+	newUserCache := cache.NewCache()
+
+
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo)
+
+	userCache := cache.NewUserCache(userRepo, newUserCache)
+	userService := user.NewUserService(userCache)
 	userHandler := user.NewUserHandler(userService)
 	
 	userGroup := r.Group("api/v1/user")
