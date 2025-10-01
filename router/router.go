@@ -20,12 +20,12 @@ import (
 func Router(db *gorm.DB) *gin.Engine{
 	r := gin.Default()
 
-	newUserCache := cache.NewCache()
+	sharedCached := cache.NewCache()
 
 
 	userRepo := user.NewUserRepository(db)
 
-	userCache := cache.NewUserCache(userRepo, newUserCache)
+	userCache := cache.NewUserCache(userRepo, sharedCached)
 	userService := user.NewUserService(userCache)
 	userHandler := user.NewUserHandler(userService)
 	
@@ -65,8 +65,7 @@ func Router(db *gorm.DB) *gin.Engine{
 	})
 
 	menuRepo := menu.NewMenuRepository(db)
-	cacheStore := cache.NewCache()
-	cacheRepo := cache.NewCacheRepo(menuRepo, cacheStore)
+	cacheRepo := cache.NewCacheRepo(menuRepo, sharedCached)
 	menuService := menu.NewMenuService(cacheRepo)
 	menuHandlers := menu.NewMenuHandlers(menuService)
 
@@ -110,7 +109,8 @@ func Router(db *gorm.DB) *gin.Engine{
 	}
 
 	orderRepo := order.NewOrderRepository(db)
-	orderService := order.NewOrderService(orderRepo, menuRepo, userRepo)
+	orderCache := cache.NewOrderCache(orderRepo, sharedCached)
+	orderService := order.NewOrderService(orderCache, menuRepo, userRepo)
 	orderHandler := order.NewOrderHandler(orderService)
 
 	orderGroup := r.Group("api/v1/order")
