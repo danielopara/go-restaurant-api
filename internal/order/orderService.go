@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/danielopara/restaurant-api/helpers"
 	"github.com/danielopara/restaurant-api/internal/menu"
 	"github.com/danielopara/restaurant-api/internal/user"
 	"github.com/danielopara/restaurant-api/models"
@@ -18,7 +19,7 @@ type OrderService interface {
 	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
 	FindOrderById(id uint) (*response.OrderResponse, error)
 	DeleteOrderById(id uint) error
-	FindOrders() ([]*models.Order , error)
+	FindOrders() ([]*response.OrderResponse , error)
 	UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role, userId uint) error
 }
 
@@ -34,14 +35,38 @@ func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, us
 }
 
 // find all orders
-func( o *orderServiceImpl) FindOrders() ([]*models.Order,error){
+func( o *orderServiceImpl) FindOrders() ([]*response.OrderResponse,error){
 	orders, err := o.orderRepo.FindOrders()
 
 	if err != nil{
 		return nil,err
 	}
 
-	return orders, nil
+	var res []*response.OrderResponse
+	for _, order := range orders{
+		waiterName, err := o.userRepo.FindById(order.WaiterID)
+		if err != nil{
+			return nil, err
+		}
+		var orderItems []response.OrderMenuItemsResponse
+
+		for _, item := range order.Items{
+			orderItems = append(orderItems, response.OrderMenuItemsResponse{
+				Name: item.MenuItem.Name,
+				Quantity: item.Quantity,
+			})
+		}
+		
+		res = append(res, &response.OrderResponse{
+			TableNo: order.TableNo,
+			WaiterID: order.WaiterID,
+			WaiterName: helpers.CapitalizeFirstLetter(waiterName.FirstName) + " " + helpers.CapitalizeFirstLetter(waiterName.LastName),
+			MenuItems: orderItems,
+			Status: string(order.Status),
+		})
+	}
+
+	return res, nil
 }
 
 //updating status

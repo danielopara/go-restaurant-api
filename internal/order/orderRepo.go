@@ -28,7 +28,7 @@ func NewOrderRepository ( db *gorm.DB) OrderRepository{
 func (o *orderRepo) FindOrders()([]*models.Order, error){
 	var orders []*models.Order
 
-	err := o.db.Find(&orders).Error
+	err := o.db.Preload("Items.MenuItem").Find(&orders).Error
 
 	if err != nil{
 		return nil, errors.New("could not fetch orders")
