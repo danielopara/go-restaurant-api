@@ -1,6 +1,7 @@
 package order
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/danielopara/restaurant-api/models"
@@ -12,6 +13,7 @@ type OrderRepository interface {
 	FindOrderById(id uint) ( *models.Order, error)
 	DeleteOrderById(id uint)error
 	UpdateOrderStatus(id uint, status models.OrderStatus) error
+	FindOrders()([]*models.Order, error)
 }
 
 type orderRepo struct{
@@ -21,6 +23,18 @@ type orderRepo struct{
 
 func NewOrderRepository ( db *gorm.DB) OrderRepository{
 	return &orderRepo{db:db}
+}
+
+func (o *orderRepo) FindOrders()([]*models.Order, error){
+	var orders []*models.Order
+
+	err := o.db.Find(&orders).Error
+
+	if err != nil{
+		return nil, errors.New("could not fetch orders")
+	}
+
+	return orders, nil
 }
 
 //update status

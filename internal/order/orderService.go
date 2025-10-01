@@ -18,6 +18,7 @@ type OrderService interface {
 	MakeOrder(waiterID uint, tableNo int, items []request.OrderItemRequest) ( *response.OrderResponse ,error)
 	FindOrderById(id uint) (*response.OrderResponse, error)
 	DeleteOrderById(id uint) error
+	FindOrders() ([]*models.Order , error)
 	UpdateOrderStatus(id uint, status models.OrderStatus, role models.Role, userId uint) error
 }
 
@@ -30,6 +31,17 @@ type orderServiceImpl struct{
 
 func NewOrderService(orderRepo OrderRepository, menuRepo menu.MenuRepository, userRepo user.UserRepository) OrderService{
 	return &orderServiceImpl{orderRepo: orderRepo, menuRepo: menuRepo, userRepo: userRepo}
+}
+
+// find all orders
+func( o *orderServiceImpl) FindOrders() ([]*models.Order,error){
+	orders, err := o.orderRepo.FindOrders()
+
+	if err != nil{
+		return nil,err
+	}
+
+	return orders, nil
 }
 
 //updating status

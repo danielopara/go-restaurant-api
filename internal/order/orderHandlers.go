@@ -17,6 +17,17 @@ func NewOrderHandler(orderService OrderService) *OrderHandler {
 	return &OrderHandler{orderService: orderService}
 }
 
+func (o *OrderHandler) FindAllOrders(c *gin.Context){
+	orders, err := o.orderService.FindOrders()
+
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": orders})
+}
+
 func ( o *OrderHandler) UpdateOrderStatusById (c *gin.Context){
 	role, exists := c.Get("role")
 
